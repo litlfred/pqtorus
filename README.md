@@ -95,7 +95,7 @@ The current MVP implements the mathematical computations directly in TypeScript 
 
 ### Mathematical Model
 
-The torus T is defined as ℂ/L, where the lattice L := {n₁p + n₂q | n₁,n₂ ∈ ℤ} with prime periods p,q. 
+The torus T is defined as ℂ/L, where the lattice L := {n₁p + n₂qi | n₁,n₂ ∈ ℤ} with prime periods p,q. 
 
 **Current Implementation:**
 - **TypeScript Mathematics**: Complex number arithmetic, lattice generation, and torus projection
@@ -103,10 +103,31 @@ The torus T is defined as ℂ/L, where the lattice L := {n₁p + n₂q | n₁,n�
 - **Interactive Controls**: Prime validation, degree approximation (d: 0-5), transparency, and mesh density
 - **Live Calculations**: τ (lattice ratio), j-invariant, and discriminant computation
 
+**Key Mathematical Formulas:**
+- **Lattice**: L = {n₁p + n₂qi | n₁,n₂ ∈ ℤ} 
+- **Tau**: τ = qi/p = i(q/p)
+- **Degree-d Approximation**: L_d = {(n₁p + n₂qi)/2^d | n₁,n₂ ∈ ℤ}
+- **Current j-invariant**: 1728 (placeholder)
+- **Current discriminant**: pqi (simplified)
+
+**📖 [Complete Mathematical Documentation](./MATHEMATICAL_FORMULAS.md)**
+
 **Degree-d Approximation:** 
-For integer degree d ≥ 0, the sub-lattice L_d := {n₁p^(-d) + n₂q^(-d) | n₁,n₂ ∈ ℤ} is used, with vertices T_d projected onto T using quadrilateral facets.
+For integer degree d ≥ 0, the sub-lattice L_d := {n₁p*2^(-d) + n₂qi*2^(-d) | n₁,n₂ ∈ ℤ} is used, with vertices T_d projected onto T using quadrilateral facets.
 
 ## Development
+
+### Mathematical Documentation
+
+For detailed documentation of all mathematical formulas used in the project, see:
+**📖 [Mathematical Formulas Documentation](./MATHEMATICAL_FORMULAS.md)**
+
+This includes:
+- Lattice generation formulas in terms of p and q
+- Elliptic curve invariants (τ, j-invariant, discriminant)
+- Degree-d approximation formulas  
+- Torus projection equations
+- Current vs. proper mathematical implementations
 
 ### Running Tests
 ```bash

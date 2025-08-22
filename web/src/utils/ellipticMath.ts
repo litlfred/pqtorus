@@ -52,7 +52,19 @@ export class Complex {
 }
 
 /**
- * Calculate elliptic curve invariants
+ * Calculate elliptic curve invariants for lattice with periods p and qi
+ * 
+ * Mathematical formulas:
+ * - Tau: τ = ω₂/ω₁ = qi/p = i(q/p)
+ * - J-invariant: j(τ) = 1728*g₂³/(g₂³-27g₃²) [currently placeholder: 1728]
+ * - Discriminant: Δ = Im(ω̄₁ω₂) = pq [currently simplified as pqi]
+ * 
+ * Current implementation uses simplified/placeholder calculations.
+ * See MATHEMATICAL_FORMULAS.md for complete mathematical documentation.
+ * 
+ * @param p First period (real component)
+ * @param q Second period (imaginary component)
+ * @returns Object containing tau, j-invariant, and discriminant
  */
 export function calculateEllipticInvariants(p: number, q: number) {
   const period1 = new Complex(p, 0)
