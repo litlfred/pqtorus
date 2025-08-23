@@ -3,6 +3,10 @@ plugins {
 }
 
 kotlin {
+    jvm {
+        jvmToolchain(17)
+    }
+    
     wasmJs {
         browser {
             testTask {
@@ -21,6 +25,18 @@ kotlin {
         }
         
         val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+        
+        val jvmMain by getting {
+            dependencies {
+                implementation("org.hipparchus:hipparchus-core:4.0.1")
+            }
+        }
+        
+        val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
