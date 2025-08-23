@@ -67,6 +67,16 @@ npm run build
 ```
 
 #### GitHub Pages
+
+**Automated Branch Previews** (Recommended)
+
+Every branch automatically gets deployed to a preview URL:
+- **Main branch**: `https://litlfred.github.io/pqtorus/main/`
+- **Feature branches**: `https://litlfred.github.io/pqtorus/<branch-name>/`
+
+Previews are automatically updated on every commit. No manual deployment needed!
+
+**Manual Deployment**
 ```bash
 cd web
 npm run build
@@ -146,6 +156,33 @@ web/
 3. Make your changes in the `web/` directory
 4. Test the build: `npm run build`
 5. Submit a pull request
+
+**Automated Branch Previews**: Every branch you push gets automatically deployed to `https://litlfred.github.io/pqtorus/<branch-name>/` for easy testing and review.
+
+## Maintainer Instructions
+
+### Automated Deployment System
+
+The repository uses GitHub Actions to automatically deploy branch previews:
+
+- **Trigger**: Every commit to any branch (except `gh-pages`)
+- **Build**: Runs `cd web && npm ci && npm run build`
+- **Deploy**: Copies build output to `gh-pages` branch under `/<branch-name>/`
+- **Preview URLs**: Available at `https://litlfred.github.io/pqtorus/<branch-name>/`
+
+### Managing Deployments
+
+- **No manual intervention needed** - deployments happen automatically
+- **Each branch gets its own subdirectory** - deployments don't interfere with each other
+- **Old content is overwritten** - each deployment replaces the previous version for that branch
+- **gh-pages branch is auto-created** if it doesn't exist
+
+### Troubleshooting Deployment Issues
+
+If deployments fail:
+1. Check the Actions tab in GitHub for error logs
+2. Ensure the build succeeds locally: `cd web && npm run build`
+3. Verify the workflow has proper permissions (should be automatic)
 
 ## License
 
