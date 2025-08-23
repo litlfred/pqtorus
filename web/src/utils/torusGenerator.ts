@@ -1,4 +1,5 @@
 import { Complex } from './ellipticMath'
+import { pyodideManager, TorusMeshData } from './pyodide'
 
 export interface Vertex3D {
   x: number
@@ -19,6 +20,16 @@ export interface TorusGeometry {
   jInvariant: Complex
   discriminant: Complex
   tau: Complex
+  usePython?: boolean
+  metadata?: {
+    p: number
+    q: number
+    degree: number
+    meshDensity: number
+    g2: string
+    g3: string
+    jInvariant: string
+  }
 }
 
 /**
@@ -96,9 +107,47 @@ function generateFacets(meshDensity: number): Facet[] {
 }
 
 /**
- * Main function to generate torus geometry
+ * Main function to generate torus geometry using Python elliptic functions
  */
-export function generateTorusGeometry(
+export async function generateTorusGeometry(
+  p: number,
+  q: number,
+  degree: number,
+  meshDensity: number = 20,
+  usePython: boolean = true
+): Promise<TorusGeometry> {
+  // Try Python implementation first if requested and available
+  if (usePython && pyodideManager.isReady()) {
+    try {
+      const pythonResult = await pyodideManager.generateTorusMesh(p, q, degree, meshDensity)
+      
+      // Calculate tau for compatibility
+      const period1 = new Complex(p, 0)
+      const period2 = new Complex(0, q)
+      const tau = period2.divide(period1)
+      
+      return {
+        vertices: pythonResult.vertices,
+        facets: pythonResult.facets,
+        jInvariant: new Complex(parseFloat(pythonResult.metadata.jInvariant) || 1728, 0),
+        discriminant: period1.multiply(period2),
+        tau,
+        usePython: true,
+        metadata: pythonResult.metadata
+      }
+    } catch (error) {
+      console.warn('Python mesh generation failed, falling back to classical:', error)
+    }
+  }
+
+  // Fallback to classical torus generation
+  return generateClassicalTorusGeometry(p, q, degree, meshDensity)
+}
+
+/**
+ * Generate classical torus geometry (original implementation)
+ */
+export function generateClassicalTorusGeometry(
   p: number,
   q: number,
   degree: number,
@@ -129,6 +178,7 @@ export function generateTorusGeometry(
     facets,
     jInvariant,
     discriminant,
-    tau
+    tau,
+    usePython: false
   }
 }

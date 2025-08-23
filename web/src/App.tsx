@@ -27,6 +27,7 @@ export interface TorusParams {
   degree: number
   transparency: number
   meshDensity: number
+  usePython?: boolean
 }
 
 function App() {
@@ -35,7 +36,8 @@ function App() {
     q: 3,
     degree: 1,
     transparency: 0.8,
-    meshDensity: 20
+    meshDensity: 20,
+    usePython: true
   })
 
   return (
