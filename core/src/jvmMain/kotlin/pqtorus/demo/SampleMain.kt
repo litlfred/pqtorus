@@ -1,6 +1,6 @@
 package pqtorus.demo
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import pqtorus.render.*
 import pqtorus.math.Weierstrass
 import java.io.File
@@ -66,7 +66,7 @@ object SampleMain {
      */
     private fun testMathematicalFunctions(p: Double, q: Double) {
         // Test point
-        val z = Complex(p / 4.0, q / 4.0)
+        val z = HipparchusComplex(p / 4.0, q / 4.0)
         
         // Compute Weierstrass functions
         val wp = Weierstrass.wp(z, p, q)

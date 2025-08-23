@@ -1,6 +1,6 @@
 package pqtorus.render
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.test.assertEquals
@@ -59,7 +59,7 @@ class EmbeddingTest {
     fun testProjectionMatrixConstruction() {
         val p = 2.0
         val q = 3.0
-        val z0 = Complex(p/3.0, q/3.0)
+        val z0 = HipparchusComplex(p/3.0, q/3.0)
         
         val matrix = Projection.buildProjectionMatrix(p, q, z0)
         
@@ -84,7 +84,7 @@ class EmbeddingTest {
     fun testEmbeddingBasicProperties() {
         val p = 2.0
         val q = 3.0
-        val z = Complex(0.5, 0.7)
+        val z = HipparchusComplex(0.5, 0.7)
         
         val point3D = embedWithDefaultProjection(z, p, q)
         
@@ -103,9 +103,9 @@ class EmbeddingTest {
         val A = Projection.buildDefaultProjectionMatrix(p, q)
         
         // Test lattice periodicity: points differing by lattice vectors should map to the same 3D point
-        val z = Complex(0.5, 0.7)
-        val zPlusP = z.add(Complex(p, 0.0))  // z + p
-        val zPlusQi = z.add(Complex(0.0, q)) // z + q*i
+        val z = HipparchusComplex(0.5, 0.7)
+        val zPlusP = z.add(HipparchusComplex(p, 0.0))  // z + p
+        val zPlusQi = z.add(HipparchusComplex(0.0, q)) // z + q*i
         
         val point = embed(z, p, q, A)
         val pointPlusP = embed(zPlusP, p, q, A)
@@ -203,7 +203,7 @@ class EmbeddingTest {
         val q = 3.0
         
         val matrix1 = Projection.buildDefaultProjectionMatrix(p, q)
-        val matrix2 = Projection.buildProjectionMatrix(p, q, Complex(p/3.0, q/3.0))
+        val matrix2 = Projection.buildProjectionMatrix(p, q, HipparchusComplex(p/3.0, q/3.0))
         
         // Default should use z0 = p/3 + qi/3
         assertTrue(matrix1.r1.contentEquals(matrix2.r1), "Default matrix row 1 should match explicit")

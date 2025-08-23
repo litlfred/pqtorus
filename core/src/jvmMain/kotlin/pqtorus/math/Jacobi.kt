@@ -1,6 +1,6 @@
 package pqtorus.math
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import org.hipparchus.special.elliptic.jacobi.JacobiElliptic
 import org.hipparchus.special.elliptic.jacobi.JacobiEllipticBuilder
 import kotlin.math.*
@@ -29,14 +29,14 @@ object Jacobi {
      * sn(u₁ + i·u₂|m) = (sn(u₁)·dn(u₂') + i·cn(u₁)·dn(u₁)·sn(u₂')·cn(u₂')) / (cn²(u₂') + m·sn²(u₁)·sn²(u₂'))
      * where m' = 1-m and u₂' corresponds to transformed argument.
      */
-    fun snComplex(u: Complex, m: Double): Complex {
+    fun snHipparchusComplex(u: HipparchusComplex, m: Double): HipparchusComplex {
         val u1 = u.real
         val u2 = u.imaginary
         
         // Handle real case
         if (abs(u2) < 1e-15) {
             val (sn, _, _) = jacobiReal(u1, m)
-            return Complex(sn, 0.0)
+            return HipparchusComplex(sn, 0.0)
         }
         
         // For complex case, use transformation to complementary parameter
@@ -55,20 +55,20 @@ object Jacobi {
         val numeratorImag = cn1 * dn1 * sn2 * cn2
         val denominator = cn2 * cn2 + m * sn1 * sn1 * sn2 * sn2
         
-        return Complex(numeratorReal / denominator, numeratorImag / denominator)
+        return HipparchusComplex(numeratorReal / denominator, numeratorImag / denominator)
     }
     
     /**
      * Compute Jacobi cn function for complex arguments.
      */
-    fun cnComplex(u: Complex, m: Double): Complex {
+    fun cnHipparchusComplex(u: HipparchusComplex, m: Double): HipparchusComplex {
         val u1 = u.real
         val u2 = u.imaginary
         
         // Handle real case
         if (abs(u2) < 1e-15) {
             val (_, cn, _) = jacobiReal(u1, m)
-            return Complex(cn, 0.0)
+            return HipparchusComplex(cn, 0.0)
         }
         
         val mPrime = 1.0 - m
@@ -83,20 +83,20 @@ object Jacobi {
         val numeratorImag = -sn1 * dn1 * sn2 * dn2
         val denominator = cn2 * cn2 + m * sn1 * sn1 * sn2 * sn2
         
-        return Complex(numeratorReal / denominator, numeratorImag / denominator)
+        return HipparchusComplex(numeratorReal / denominator, numeratorImag / denominator)
     }
     
     /**
      * Compute Jacobi dn function for complex arguments.
      */
-    fun dnComplex(u: Complex, m: Double): Complex {
+    fun dnHipparchusComplex(u: HipparchusComplex, m: Double): HipparchusComplex {
         val u1 = u.real
         val u2 = u.imaginary
         
         // Handle real case
         if (abs(u2) < 1e-15) {
             val (_, _, dn) = jacobiReal(u1, m)
-            return Complex(dn, 0.0)
+            return HipparchusComplex(dn, 0.0)
         }
         
         val mPrime = 1.0 - m
@@ -111,7 +111,7 @@ object Jacobi {
         val numeratorImag = -m * sn1 * cn1 * sn2
         val denominator = cn2 * cn2 + m * sn1 * sn1 * sn2 * sn2
         
-        return Complex(numeratorReal / denominator, numeratorImag / denominator)
+        return HipparchusComplex(numeratorReal / denominator, numeratorImag / denominator)
     }
     
     /**
@@ -120,11 +120,11 @@ object Jacobi {
      * @param m Jacobi parameter (k²)
      * @return Triple of (sn, cn, dn) as Complex values
      */
-    fun jacobiComplex(u: Complex, m: Double): Triple<Complex, Complex, Complex> {
+    fun jacobiHipparchusComplex(u: HipparchusComplex, m: Double): Triple<Complex, Complex, Complex> {
         return Triple(
-            snComplex(u, m),
-            cnComplex(u, m),
-            dnComplex(u, m)
+            snHipparchusComplex(u, m),
+            cnHipparchusComplex(u, m),
+            dnHipparchusComplex(u, m)
         )
     }
     
@@ -132,12 +132,12 @@ object Jacobi {
      * Handle pole cases where sn(u|m) = 0 by applying small perturbation.
      * This prevents division by zero in Weierstrass function calculation.
      */
-    fun snSafe(u: Complex, m: Double, epsilon: Double = 1e-12): Complex {
-        val sn = snComplex(u, m)
+    fun snSafe(u: HipparchusComplex, m: Double, epsilon: Double = 1e-12): HipparchusComplex {
+        val sn = snHipparchusComplex(u, m)
         return if (sn.abs() < epsilon) {
             // Apply tiny perturbation to avoid pole
-            val perturbedU = u.add(Complex(epsilon, epsilon))
-            snComplex(perturbedU, m)
+            val perturbedU = u.add(HipparchusComplex(epsilon, epsilon))
+            snHipparchusComplex(perturbedU, m)
         } else {
             sn
         }

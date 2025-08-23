@@ -1,6 +1,6 @@
 package pqtorus.render
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import pqtorus.math.Weierstrass
 import kotlin.math.*
 
@@ -74,14 +74,14 @@ object Projection {
      * @param z0 Basepoint for projection alignment
      * @return 3x4 projection matrix A
      */
-    fun buildProjectionMatrix(p: Double, q: Double, z0: Complex): Matrix3x4 {
+    fun buildProjectionMatrix(p: Double, q: Double, z0: HipparchusComplex): Matrix3x4 {
         // Compute Weierstrass functions at basepoint
         val wp0 = Weierstrass.wp(z0, p, q)
         val wpPrime0 = Weierstrass.wpPrime(z0, p, q)
         
         // Compute second derivative: y0″ = 6·℘(z0)² - g2/2
         val g2 = Weierstrass.g2(p, q)
-        val wpPrimePrime0 = wp0.multiply(wp0).multiply(6.0).subtract(Complex(g2 / 2.0, 0.0))
+        val wpPrimePrime0 = wp0.multiply(wp0).multiply(6.0).subtract(HipparchusComplex(g2 / 2.0, 0.0))
         
         // Extract real and imaginary parts
         val y1 = wpPrime0.real        // Re ℘′(z0)
@@ -102,7 +102,7 @@ object Projection {
      * This provides a good general-purpose projection for most lattices.
      */
     fun buildDefaultProjectionMatrix(p: Double, q: Double): Matrix3x4 {
-        val z0 = Complex(p / 3.0, q / 3.0)
+        val z0 = HipparchusComplex(p / 3.0, q / 3.0)
         return buildProjectionMatrix(p, q, z0)
     }
     
@@ -110,7 +110,7 @@ object Projection {
      * Convert Weierstrass function values to 4D coordinate vector Φ(z).
      * Φ(z) = (Re ℘(z), Im ℘(z), Re ℘′(z), Im ℘′(z))
      */
-    fun weierstrassTo4D(z: Complex, p: Double, q: Double): DoubleArray {
+    fun weierstrassTo4D(z: HipparchusComplex, p: Double, q: Double): DoubleArray {
         val wp = Weierstrass.wp(z, p, q)
         val wpPrime = Weierstrass.wpPrime(z, p, q)
         
@@ -126,7 +126,7 @@ object Projection {
      * Apply projection matrix to embed a complex point z into 3D space.
      * Returns (X, Y, Z) = A · Φ(z) where Φ(z) is the 4D Weierstrass coordinate.
      */
-    fun embed(z: Complex, p: Double, q: Double, projectionMatrix: Matrix3x4): Vec3 {
+    fun embed(z: HipparchusComplex, p: Double, q: Double, projectionMatrix: Matrix3x4): Vec3 {
         val phi = weierstrassTo4D(z, p, q)
         return projectionMatrix.multiply(phi)
     }

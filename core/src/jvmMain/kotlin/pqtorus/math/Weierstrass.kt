@@ -1,6 +1,6 @@
 package pqtorus.math
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import kotlin.math.*
 
 /**
@@ -62,7 +62,7 @@ object Weierstrass {
      * Formula: ℘(z) = e3 + (e1 - e3) / sn²(U|m)
      * where U = √(e1 - e3) * z
      */
-    fun wp(z: Complex, p: Double, q: Double): Complex {
+    fun wp(z: HipparchusComplex, p: Double, q: Double): HipparchusComplex {
         val invariants = computeInvariants(p, q)
         
         // Compute U = √(e1 - e3) * z
@@ -75,7 +75,7 @@ object Weierstrass {
         
         // ℘(z) = e3 + (e1 - e3) / sn²(U|m)
         val e1MinusE3 = invariants.e1 - invariants.e3
-        return Complex(invariants.e3, 0.0).add(Complex(e1MinusE3, 0.0).divide(sn2))
+        return HipparchusComplex(invariants.e3, 0.0).add(HipparchusComplex(e1MinusE3, 0.0).divide(sn2))
     }
     
     /**
@@ -83,7 +83,7 @@ object Weierstrass {
      * Formula: ℘′(z) = -2 * (e1 - e3)^(3/2) * cn(U|m) * dn(U|m) / sn³(U|m)
      * where U = √(e1 - e3) * z
      */
-    fun wpPrime(z: Complex, p: Double, q: Double): Complex {
+    fun wpPrime(z: HipparchusComplex, p: Double, q: Double): HipparchusComplex {
         val invariants = computeInvariants(p, q)
         
         // Compute U = √(e1 - e3) * z
@@ -91,13 +91,13 @@ object Weierstrass {
         val U = z.multiply(sqrtE1MinusE3)
         
         // Compute Jacobi functions
-        val (sn, cn, dn) = Jacobi.jacobiComplex(U, invariants.m)
+        val (sn, cn, dn) = Jacobi.jacobiHipparchusComplex(U, invariants.m)
         
         // Handle pole case
         val sn3 = if (sn.abs() < 1e-12) {
             // Apply small perturbation to avoid pole
-            val perturbedU = U.add(Complex(1e-12, 1e-12))
-            val (snPerturbed, _, _) = Jacobi.jacobiComplex(perturbedU, invariants.m)
+            val perturbedU = U.add(HipparchusComplex(1e-12, 1e-12))
+            val (snPerturbed, _, _) = Jacobi.jacobiHipparchusComplex(perturbedU, invariants.m)
             snPerturbed.pow(3.0)
         } else {
             sn.pow(3.0)
@@ -105,7 +105,7 @@ object Weierstrass {
         
         // ℘′(z) = -2 * (e1 - e3)^(3/2) * cn(U|m) * dn(U|m) / sn³(U|m)
         val e1MinusE3_3_2 = (invariants.e1 - invariants.e3).pow(1.5)
-        val numerator = cn.multiply(dn).multiply(-2.0 * e1MinusE3_3_2)
+        val numerator = cn.multiply(dn).multiply(HipparchusComplex(-2.0 * e1MinusE3_3_2, 0.0))
         
         return numerator.divide(sn3)
     }
@@ -130,7 +130,7 @@ object Weierstrass {
      * Returns (℘′(z))² - 4(℘(z))³ + g2·℘(z) + g3
      * Should be close to zero for correct implementation.
      */
-    fun verifyDifferentialEquation(z: Complex, p: Double, q: Double): Complex {
+    fun verifyDifferentialEquation(z: HipparchusComplex, p: Double, q: Double): HipparchusComplex {
         val wp = wp(z, p, q)
         val wpPrime = wpPrime(z, p, q)
         val invariants = computeInvariants(p, q)
@@ -138,7 +138,7 @@ object Weierstrass {
         val lhs = wpPrime.multiply(wpPrime)
         val rhs = wp.pow(3.0).multiply(4.0)
             .subtract(wp.multiply(invariants.g2))
-            .subtract(Complex(invariants.g3, 0.0))
+            .subtract(HipparchusComplex(invariants.g3, 0.0))
         
         return lhs.subtract(rhs)
     }

@@ -1,6 +1,6 @@
 package pqtorus.math
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import kotlin.test.Test
 import kotlin.test.assertTrue
 import kotlin.math.*
@@ -66,27 +66,27 @@ class WeierstrassTest {
     
     @Test
     fun testJacobiIdentities() {
-        val u = Complex(0.5, 0.3)
+        val u = HipparchusComplex(0.5, 0.3)
         val m = 0.7
         
-        val (sn, cn, dn) = Jacobi.jacobiComplex(u, m)
+        val (sn, cn, dn) = Jacobi.jacobiHipparchusComplex(u, m)
         
         // Test fundamental Jacobi identity: sn² + cn² = 1
         val identity1 = sn.multiply(sn).add(cn.multiply(cn))
-        val error1 = identity1.subtract(Complex.ONE).abs()
+        val error1 = identity1.subtract(HipparchusComplex.ONE).abs()
         assertTrue(error1 < TOLERANCE, "sn² + cn² = 1 failed, error = $error1")
         
         // Test second identity: dn² + m·sn² = 1
         val identity2 = dn.multiply(dn).add(sn.multiply(sn).multiply(m))
-        val error2 = identity2.subtract(Complex.ONE).abs()
+        val error2 = identity2.subtract(HipparchusComplex.ONE).abs()
         assertTrue(error2 < TOLERANCE, "dn² + m·sn² = 1 failed, error = $error2")
         
         println("Jacobi function values at u=$u, m=$m:")
         println("  sn = $sn")
         println("  cn = $cn")
         println("  dn = $dn")
-        println("  sn² + cn² - 1 = ${identity1.subtract(Complex.ONE)}")
-        println("  dn² + m·sn² - 1 = ${identity2.subtract(Complex.ONE)}")
+        println("  sn² + cn² - 1 = ${identity1.subtract(HipparchusComplex.ONE)}")
+        println("  dn² + m·sn² - 1 = ${identity2.subtract(HipparchusComplex.ONE)}")
     }
     
     @Test
@@ -96,9 +96,9 @@ class WeierstrassTest {
         
         // Test at several points
         val testPoints = listOf(
-            Complex(p/4.0, q/4.0),
-            Complex(p/3.0, q/5.0),
-            Complex(p/6.0, q/2.0)
+            HipparchusComplex(p/4.0, q/4.0),
+            HipparchusComplex(p/3.0, q/5.0),
+            HipparchusComplex(p/6.0, q/2.0)
         )
         
         for (z in testPoints) {
@@ -130,7 +130,7 @@ class WeierstrassTest {
     fun testWeierstrassFunctionSymmetries() {
         val p = 2.0
         val q = 3.0
-        val z = Complex(0.5, 0.7)
+        val z = HipparchusComplex(0.5, 0.7)
         
         // Test ℘ function is even: ℘(-z) = ℘(z)
         val wpZ = Weierstrass.wp(z, p, q)

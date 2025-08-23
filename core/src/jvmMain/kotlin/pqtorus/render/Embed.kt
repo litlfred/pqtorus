@@ -1,6 +1,6 @@
 package pqtorus.render
 
-import org.hipparchus.complex.Complex
+import org.hipparchus.complex.Complex as HipparchusComplex
 import pqtorus.math.Weierstrass
 
 /**
@@ -19,7 +19,7 @@ import pqtorus.math.Weierstrass
  * @param A Projection matrix (3x4) for embedding
  * @return 3D point (X, Y, Z)
  */
-fun embed(z: Complex, p: Double, q: Double, A: Matrix3x4): Vec3 {
+fun embed(z: HipparchusComplex, p: Double, q: Double, A: Matrix3x4): Vec3 {
     return Projection.embed(z, p, q, A)
 }
 
@@ -27,7 +27,7 @@ fun embed(z: Complex, p: Double, q: Double, A: Matrix3x4): Vec3 {
  * Convenience function for embedding with default projection matrix.
  * Uses basepoint z0 = p/3 + (q·i)/3 for matrix construction.
  */
-fun embedWithDefaultProjection(z: Complex, p: Double, q: Double): Vec3 {
+fun embedWithDefaultProjection(z: HipparchusComplex, p: Double, q: Double): Vec3 {
     val A = Projection.buildDefaultProjectionMatrix(p, q)
     return embed(z, p, q, A)
 }
@@ -57,7 +57,7 @@ fun generateEmbeddedGrid(
             val v = j.toDouble() / gridSize
             
             // Map (u,v) to lattice point z = u·p + v·q·i
-            val z = Complex(u * p, v * q)
+            val z = HipparchusComplex(u * p, v * q)
             
             val point3D = embed(z, p, q, projectionMatrix)
             points.add(point3D)
@@ -191,7 +191,7 @@ fun generateEmbeddedTorus(
     p: Double,
     q: Double, 
     gridSize: Int = 20,
-    z0: Complex? = null
+    z0: HipparchusComplex? = null
 ): EmbeddedTorus {
     val projectionMatrix = if (z0 != null) {
         Projection.buildProjectionMatrix(p, q, z0)
