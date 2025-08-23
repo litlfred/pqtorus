@@ -141,6 +141,10 @@ The project includes an Android app that wraps the web application in a native W
 ```bash
 cd web
 
+# Quick build using the provided script
+./build-android.sh
+
+# Or manually:
 # Install dependencies
 npm install
 
@@ -170,6 +174,22 @@ cd android
 #### APK locations:
 - Debug: `web/android/app/build/outputs/apk/debug/app-debug.apk`
 - Release: `web/android/app/build/outputs/apk/release/app-release-unsigned.apk`
+
+#### Helper Script:
+
+For convenience, a build script is provided at `web/build-android.sh` that automates the entire process:
+
+```bash
+cd web
+./build-android.sh
+```
+
+This script will:
+1. Install npm dependencies
+2. Build the web application
+3. Sync assets with Capacitor
+4. Build the debug APK
+5. Provide instructions for installation and release builds
 
 #### Automated APK Builds
 

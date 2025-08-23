@@ -42,10 +42,24 @@ jobs:
         cd web
         npm run build
         
+    - name: Verify web build
+      run: |
+        echo "📦 Web build contents:"
+        ls -la web/dist/
+        echo "📄 Index.html content:"
+        head -10 web/dist/index.html
+        
     - name: Sync Capacitor
       run: |
         cd web
-        npx cap sync android --no-build
+        npx cap sync android
+        
+    - name: Verify Android project sync
+      run: |
+        echo "📱 Android assets:"
+        ls -la web/android/app/src/main/assets/public/
+        echo "🔧 Gradle wrapper permissions:"
+        ls -la web/android/gradlew
         
     - name: Grant execute permission for gradlew
       run: chmod +x web/android/gradlew
@@ -53,21 +67,35 @@ jobs:
     - name: Build debug APK
       run: |
         cd web/android
-        ./gradlew assembleDebug
+        echo "🔨 Building debug APK..."
+        ./gradlew assembleDebug --no-daemon --stacktrace
+        
+    - name: Verify debug APK
+      run: |
+        echo "📋 Debug APK info:"
+        ls -la web/android/app/build/outputs/apk/debug/
         
     - name: Upload debug APK
       uses: actions/upload-artifact@v4
       with:
         name: pqtorus-debug-${{ github.sha }}
         path: web/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
         
     - name: Build release APK
       run: |
         cd web/android
-        ./gradlew assembleRelease
+        echo "🚀 Building release APK..."
+        ./gradlew assembleRelease --no-daemon --stacktrace
+        
+    - name: Verify release APK
+      run: |
+        echo "📋 Release APK info:"
+        ls -la web/android/app/build/outputs/apk/release/
         
     - name: Upload release APK
       uses: actions/upload-artifact@v4
       with:
         name: pqtorus-release-${{ github.sha }}
         path: web/android/app/build/outputs/apk/release/app-release-unsigned.apk
+        retention-days: 30
