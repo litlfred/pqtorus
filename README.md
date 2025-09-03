@@ -157,7 +157,7 @@ web/
 4. Test the build: `npm run build`
 5. Submit a pull request
 
-**Automated Branch Previews**: Every branch you push gets automatically deployed to `https://litlfred.github.io/pqtorus/<branch-name>/` for easy testing and review.
+**Automated Branch Previews**: Every branch you push gets automatically deployed to `https://litlfred.github.io/pqtorus/<branch-name>/` for easy testing and review. Pull requests automatically receive comments with clickable preview links!
 
 ## Maintainer Instructions
 
@@ -165,10 +165,26 @@ web/
 
 The repository uses GitHub Actions to automatically deploy branch previews:
 
-- **Trigger**: Every commit to any branch (except `gh-pages`)
+- **Triggers**: 
+  - Every commit to any branch (except `gh-pages`)
+  - Pull request events (opened, synchronized, reopened)
+  - Manual dispatch from GitHub Actions UI
 - **Build**: Runs `cd web && npm ci && npm run build`
 - **Deploy**: Copies build output to `gh-pages` branch under `/<branch-name>/`
 - **Preview URLs**: Available at `https://litlfred.github.io/pqtorus/<branch-name>/`
+- **PR Integration**: Automatically comments on pull requests with clickable preview links
+
+### Manual Deployment
+
+You can manually trigger a deployment for any branch:
+
+1. Go to the **Actions** tab in GitHub
+2. Select the **Deploy Branch Preview** workflow
+3. Click **Run workflow**
+4. Choose the branch you want to deploy
+5. Click **Run workflow**
+
+The deployment will be available at `https://litlfred.github.io/pqtorus/<branch-name>/`
 
 ### Managing Deployments
 
@@ -176,6 +192,7 @@ The repository uses GitHub Actions to automatically deploy branch previews:
 - **Each branch gets its own subdirectory** - deployments don't interfere with each other
 - **Old content is overwritten** - each deployment replaces the previous version for that branch
 - **gh-pages branch is auto-created** if it doesn't exist
+- **PR comments are updated automatically** - existing deployment comments are updated instead of creating new ones
 
 ### Troubleshooting Deployment Issues
 
@@ -183,6 +200,9 @@ If deployments fail:
 1. Check the Actions tab in GitHub for error logs
 2. Ensure the build succeeds locally: `cd web && npm run build`
 3. Verify the workflow has proper permissions (should be automatic)
+4. For PR comment issues, check that the repository has "Write" permissions for pull requests
+
+**Note**: Pull request comments may take a few moments to appear after the deployment completes.
 
 ## License
 
