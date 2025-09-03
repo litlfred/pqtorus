@@ -1,21 +1,54 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Box, 
   Typography, 
   Slider, 
   Paper,
   Stack,
-  Chip
+  Chip,
+  Switch,
+  FormControlLabel,
+  Alert,
+  LinearProgress
 } from '@mui/material'
 import { TorusParams } from '../App'
 import { isPrime, nextPrime } from '../utils/primes'
+import { pyodideManager } from '../utils/pyodide'
 
 interface ControlPanelProps {
-  params: TorusParams
-  setParams: (params: TorusParams) => void
+  params: TorusParams & { usePython?: boolean }
+  setParams: (params: TorusParams & { usePython?: boolean }) => void
 }
 
 function ControlPanel({ params, setParams }: ControlPanelProps) {
+  const [pyodideState, setPyodideState] = useState({
+    isLoading: pyodideManager.isLoadingPyodide(),
+    isReady: pyodideManager.isReady()
+  })
+
+  useEffect(() => {
+    const checkPyodideState = () => {
+      setPyodideState({
+        isLoading: pyodideManager.isLoadingPyodide(),
+        isReady: pyodideManager.isReady()
+      })
+    }
+
+    // Initialize Pyodide if not already done
+    if (!pyodideState.isReady && !pyodideState.isLoading) {
+      pyodideManager.initialize().then(checkPyodideState)
+    }
+
+    // Check state periodically during loading
+    let interval: NodeJS.Timeout | null = null
+    if (pyodideState.isLoading) {
+      interval = setInterval(checkPyodideState, 1000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [pyodideState.isLoading])
   const handlePChange = (value: number) => {
     const prime = isPrime(value) ? value : nextPrime(value)
     setParams({ ...params, p: prime })
@@ -38,6 +71,10 @@ function ControlPanel({ params, setParams }: ControlPanelProps) {
     setParams({ ...params, meshDensity: Math.max(5, Math.min(50, value)) })
   }
 
+  const handlePythonToggle = (usePython: boolean) => {
+    setParams({ ...params, usePython })
+  }
+
   return (
     <Paper sx={{ p: 3, height: '100%', overflow: 'auto' }}>
       <Typography variant="h5" gutterBottom>
@@ -45,6 +82,52 @@ function ControlPanel({ params, setParams }: ControlPanelProps) {
       </Typography>
       
       <Stack spacing={4}>
+        {/* Python Backend Control */}
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Backend Engine
+          </Typography>
+          
+          {pyodideState.isLoading && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              <Box>
+                <Typography variant="body2">Loading Python SymPy backend...</Typography>
+                <LinearProgress sx={{ mt: 1 }} />
+              </Box>
+            </Alert>
+          )}
+          
+          <FormControlLabel
+            control={
+              <Switch
+                checked={params.usePython && pyodideState.isReady}
+                onChange={(e) => handlePythonToggle(e.target.checked)}
+                disabled={!pyodideState.isReady}
+              />
+            }
+            label={
+              <Box>
+                <Typography>
+                  {pyodideState.isReady ? 'Python SymPy Backend' : 'Classical Torus Mode'}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {pyodideState.isReady 
+                    ? 'Exact elliptic function computation'
+                    : pyodideState.isLoading 
+                      ? 'Loading symbolic computation engine...'
+                      : 'Simple parametric torus'
+                  }
+                </Typography>
+              </Box>
+            }
+          />
+          
+          {params.usePython && pyodideState.isReady && (
+            <Alert severity="success" sx={{ mt: 1 }}>
+              Using Weierstrass ℘ functions and Eisenstein series for exact lattice embedding
+            </Alert>
+          )}
+        </Box>
         <Box>
           <Typography variant="h6" gutterBottom>
             Prime Periods
