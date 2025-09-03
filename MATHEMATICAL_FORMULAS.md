@@ -20,17 +20,17 @@ L = {n₁ω₁ + n₂ω₂ | n₁, n₂ ∈ ℤ}
 ### Degree-d Approximation Lattice
 For visualization purposes, a sub-lattice with degree d ≥ 0 is used:
 ```
-L_d = {n₁ω₁/2^d + n₂ω₂/2^d | n₁, n₂ ∈ ℤ}
+L_d = {n₁p^(-d) + in₂q^(-d) | n₁, n₂ ∈ ℤ}
 ```
 
 **Formula in terms of p and q:**
 ```
-L_d = {n₁(p/2^d) + n₂(qi/2^d) | n₁, n₂ ∈ ℤ}
-    = {(n₁p + n₂qi)/2^d | n₁, n₂ ∈ ℤ}
+L_d = {n₁p^(-d) + in₂q^(-d) | n₁, n₂ ∈ ℤ}
+    = {n₁/p^d + in₂/q^d | n₁, n₂ ∈ ℤ}
 ```
 
 **Current Implementation:**
-- Scale factor: `scale = 1/2^d = 2^(-d)`
+- Scale factor: `scale = p^(-d)` for real period, `q^(-d)` for imaginary period
 - Lattice points generated for visualization range: n₁, n₂ ∈ [-10, 10]
 
 ## Elliptic Curve Invariants
@@ -70,6 +70,25 @@ g₂(τ) = 60 ∑'_{(m,n)≠(0,0)} 1/(mω₁ + nω₂)⁴
 g₃(τ) = 140 ∑'_{(m,n)≠(0,0)} 1/(mω₁ + nω₂)⁶
 ```
 
+**Formulas in terms of p and q:**
+For our lattice with ω₁ = p and ω₂ = qi:
+```
+g₂ = 60 ∑'_{(m,n)≠(0,0)} 1/(mp + nqi)⁴
+   = 60 ∑'_{(m,n)≠(0,0)} 1/(mp + inq)⁴
+
+g₃ = 140 ∑'_{(m,n)≠(0,0)} 1/(mp + nqi)⁶  
+   = 140 ∑'_{(m,n)≠(0,0)} 1/(mp + inq)⁶
+```
+
+Alternatively, using τ = iq/p:
+```
+g₂ = 60p⁻⁴ ∑'_{(m,n)≠(0,0)} 1/(m + nτ)⁴
+   = 60p⁻⁴ ∑'_{(m,n)≠(0,0)} 1/(m + in(q/p))⁴
+
+g₃ = 140p⁻⁶ ∑'_{(m,n)≠(0,0)} 1/(m + nτ)⁶
+   = 140p⁻⁶ ∑'_{(m,n)≠(0,0)} 1/(m + in(q/p))⁶
+```
+
 **Current Implementation:**
 ```typescript
 // Simplified placeholder - does not use actual elliptic function theory
@@ -77,7 +96,7 @@ const jInvariant = new Complex(1728, 0)  // Constant placeholder
 ```
 
 **Note:** The current implementation uses a placeholder value. A proper implementation would:
-1. Calculate the Eisenstein series g₂ and g₃
+1. Calculate the Eisenstein series g₂ and g₃ using the formulas above
 2. Compute j(τ) = 1728g₂³/(g₂³ - 27g₃²)
 3. For our case with τ = i(q/p), this would be j(i(q/p))
 
@@ -165,7 +184,7 @@ Where ℘ is the Weierstrass elliptic function satisfying:
 
 ## Implementation Notes
 
-1. **Degree Scaling**: The factor `2^(-d)` scales the lattice for finer/coarser approximations
+1. **Degree Scaling**: The factors `p^(-d)` and `q^(-d)` scale the lattice periods for finer/coarser approximations
 2. **Visualization Range**: Points generated for n₁, n₂ ∈ [-10, 10] for practical visualization
 3. **Mesh Density**: Controls the resolution of the torus surface (default: 20×20 grid)
 4. **Prime Periods**: p and q should be prime numbers for mathematical correctness
