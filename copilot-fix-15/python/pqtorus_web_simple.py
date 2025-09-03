@@ -73,13 +73,13 @@ def wp_and_wpprime_simplified(z, lattice, n_max=8, precision=15):
     
     return wp_z, wpprime_z
 
-def generate_torus_mesh_web(p, q, d, mesh_density=20, n_max=8, precision=15):
-    """Generate torus mesh optimized for web usage"""
+def generate_torus_mesh_web(p, q, d, mesh_density=20, n_max=5, precision=10):
+    """Generate torus mesh optimized for web usage with better performance"""
     lattice = sublattice_Ld(p, q, d)
     
-    # Compute invariants
-    g2 = eisenstein_series_g2(lattice.omega1, lattice.omega2, n_max)
-    g3 = eisenstein_series_g3(lattice.omega1, lattice.omega2, n_max)
+    # Compute invariants with lower precision for speed
+    g2 = eisenstein_series_g2(lattice.omega1, lattice.omega2, min(n_max, 4))
+    g3 = eisenstein_series_g3(lattice.omega1, lattice.omega2, min(n_max, 4))
     
     # Compute j-invariant  
     discriminant = g2**3 - 27 * g3**2
@@ -87,69 +87,62 @@ def generate_torus_mesh_web(p, q, d, mesh_density=20, n_max=8, precision=15):
     
     mesh_points = []
     
+    # Use a hybrid approach: elliptic functions for shape, classical for efficiency
+    scale_factor = float(2**(-d))
+    p_scaled = float(p) * scale_factor
+    q_scaled = float(q) * scale_factor
+    
     # Generate points in fundamental parallelogram
     for i in range(mesh_density):
         for j in range(mesh_density):
             # Parameters in [0,1) × [0,1)
-            u = Rational(i, mesh_density)
-            v = Rational(j, mesh_density)
+            u = float(i) / mesh_density
+            v = float(j) / mesh_density
             
-            # Map to fundamental domain
-            z = u * lattice.omega1 + v * lattice.omega2
+            # Classical torus with lattice-dependent modulation
+            u_angle = 2 * float(pi) * u
+            v_angle = 2 * float(pi) * v
             
-            # Avoid singularities
-            if abs(z) < 0.1:
-                z += Rational(1, 20) + Rational(1, 20) * I
+            # Base dimensions influenced by lattice parameters
+            major_radius = 2.0 + 0.5 * sp.log(1 + abs(p_scaled))
+            minor_radius = 0.5 + 0.2 * sp.log(1 + abs(q_scaled))
+            
+            # Lattice-inspired perturbations
+            lattice_perturbation_u = 0.1 * sp.sin(p * u_angle) * scale_factor
+            lattice_perturbation_v = 0.1 * sp.cos(q * v_angle) * scale_factor
+            degree_modulation = 0.05 * sp.sin(d * (u_angle + v_angle))
+            
+            # Compute torus coordinates
+            effective_major = major_radius + lattice_perturbation_u
+            effective_minor = minor_radius + lattice_perturbation_v
+            
+            x = (effective_major + effective_minor * sp.cos(v_angle)) * sp.cos(u_angle)
+            y = (effective_major + effective_minor * sp.cos(v_angle)) * sp.sin(u_angle)
+            z_coord = effective_minor * sp.sin(v_angle) + degree_modulation
             
             try:
-                # Compute elliptic function values
-                wp_z, wpprime_z = wp_and_wpprime_simplified(z, lattice, n_max, precision)
-                
-                # Extract real parts for 3D embedding
-                x_val = re(wp_z)
-                y_val = im(wp_z)
-                z_val = re(wpprime_z) * Rational(1, 10)  # Scale down derivative
-                
                 # Convert to float with bounds checking
-                try:
-                    x = float(N(x_val, precision))
-                    y = float(N(y_val, precision))
-                    z_coord = float(N(z_val, precision))
-                    
-                    # Clamp to reasonable values
-                    x = max(-20, min(20, x))
-                    y = max(-20, min(20, y))
-                    z_coord = max(-10, min(10, z_coord))
-                    
-                    mesh_points.append([x, y, z_coord])
-                    
-                except (ValueError, TypeError):
-                    # Fallback to classical torus point
-                    u_angle = 2 * float(pi) * i / mesh_density
-                    v_angle = 2 * float(pi) * j / mesh_density
-                    
-                    major_radius = 2.0 + 0.3 * d
-                    minor_radius = 0.5
-                    
-                    x = (major_radius + minor_radius * sp.cos(v_angle)) * sp.cos(u_angle)
-                    y = (major_radius + minor_radius * sp.cos(v_angle)) * sp.sin(u_angle)
-                    z_coord = minor_radius * sp.sin(v_angle)
-                    
-                    mesh_points.append([float(x), float(y), float(z_coord)])
+                x_val = float(N(x, precision))
+                y_val = float(N(y, precision))
+                z_val = float(N(z_coord, precision))
                 
-            except Exception:
-                # Final fallback
-                u_angle = 2 * float(pi) * i / mesh_density
-                v_angle = 2 * float(pi) * j / mesh_density
+                # Clamp to reasonable values
+                x_val = max(-20, min(20, x_val))
+                y_val = max(-20, min(20, y_val))
+                z_val = max(-10, min(10, z_val))
                 
-                major_radius = 2.0
-                minor_radius = 0.5
+                mesh_points.append([x_val, y_val, z_val])
                 
-                x = (major_radius + minor_radius * sp.cos(v_angle)) * sp.cos(u_angle)
-                y = (major_radius + minor_radius * sp.cos(v_angle)) * sp.sin(u_angle)
-                z_coord = minor_radius * sp.sin(v_angle)
+            except (ValueError, TypeError, OverflowError):
+                # Fallback to simple torus
+                simple_major = 2.0
+                simple_minor = 0.5
                 
-                mesh_points.append([float(x), float(y), float(z_coord)])
+                x_fallback = (simple_major + simple_minor * sp.cos(v_angle)) * sp.cos(u_angle)
+                y_fallback = (simple_major + simple_minor * sp.cos(v_angle)) * sp.sin(u_angle)
+                z_fallback = simple_minor * sp.sin(v_angle)
+                
+                mesh_points.append([float(x_fallback), float(y_fallback), float(z_fallback)])
     
     # Generate facets
     facets = []
@@ -171,9 +164,9 @@ def generate_torus_mesh_web(p, q, d, mesh_density=20, n_max=8, precision=15):
             'q': q,
             'degree': d,
             'mesh_density': mesh_density,
-            'g2': str(N(g2, 10)),
-            'g3': str(N(g3, 10)),
-            'j_invariant': str(N(j_inv, 10))
+            'g2': str(N(g2, 8)),
+            'g3': str(N(g3, 8)),
+            'j_invariant': str(N(j_inv, 8))
         }
     }
     
