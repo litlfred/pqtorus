@@ -155,7 +155,7 @@ def sublattice_Ld(p, q, d):
     return Lattice(p * scale, q * scale * I)
 
 def generate_torus_mesh_python(p, q, d, mesh_density=20, n_max=3, precision=10):
-    """Fast torus mesh for browser"""
+    """Fast torus mesh for browser with lattice-dependent geometry"""
     lattice = sublattice_Ld(p, q, d)
     
     # Simplified invariant computation
@@ -165,22 +165,30 @@ def generate_torus_mesh_python(p, q, d, mesh_density=20, n_max=3, precision=10):
     
     mesh_points = []
     
-    # Generate classical torus with elliptic-inspired modifications
+    # Generate lattice-dependent torus
+    scale_factor = 2**(-d)  # 2^(-d) factor from L_d definition
+    
     for i in range(mesh_density):
         for j in range(mesh_density):
             u_angle = 2 * float(pi) * i / mesh_density
             v_angle = 2 * float(pi) * j / mesh_density
             
-            # Base torus
-            major_radius = 2.0 + 0.2 * d
-            minor_radius = 0.5 + 0.1 * d
+            # Make torus dimensions depend on lattice parameters
+            major_radius = 2.0 + 0.4 * sp.log(1 + p) * scale_factor
+            minor_radius = 0.5 + 0.2 * sp.log(1 + q) * scale_factor
             
-            # Add some elliptic-inspired perturbation
-            perturbation = 0.1 * sp.sin(p * u_angle) * sp.cos(q * v_angle)
+            # Add lattice-specific perturbations based on L_d structure
+            p_modulation = 0.15 * sp.sin(p * u_angle) * scale_factor
+            q_modulation = 0.15 * sp.cos(q * v_angle) * scale_factor
+            degree_effect = 0.1 * sp.sin(d * (u_angle + v_angle))
             
-            x = (major_radius + minor_radius * sp.cos(v_angle) + perturbation) * sp.cos(u_angle)
-            y = (major_radius + minor_radius * sp.cos(v_angle) + perturbation) * sp.sin(u_angle)
-            z_coord = minor_radius * sp.sin(v_angle) + 0.1 * sp.sin(d * v_angle)
+            # Compute effective radii
+            effective_major = major_radius + p_modulation
+            effective_minor = minor_radius + q_modulation
+            
+            x = (effective_major + effective_minor * sp.cos(v_angle)) * sp.cos(u_angle)
+            y = (effective_major + effective_minor * sp.cos(v_angle)) * sp.sin(u_angle)
+            z_coord = effective_minor * sp.sin(v_angle) + degree_effect
             
             mesh_points.append([float(x), float(y), float(z_coord)])
     

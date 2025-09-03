@@ -117,7 +117,7 @@ function TorusMesh({ params }: { params: TorusParams }) {
     return () => {
       isCancelled = true
     }
-  }, [params.p, params.q, params.degree, params.meshDensity])
+  }, [params.p, params.q, params.degree, params.meshDensity, params.usePython])
 
   useFrame((state) => {
     if (meshRef.current) {

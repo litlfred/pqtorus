@@ -51,28 +51,45 @@ function generateLatticePoints(period1: Complex, period2: Complex, degree: numbe
 }
 
 /**
- * Project complex lattice points to 3D torus surface
+ * Project complex lattice points to 3D torus surface using lattice-dependent parameters
  */
 function projectToTorus(
   latticePoints: Complex[], 
   period1: Complex, 
   period2: Complex,
-  meshDensity: number
+  meshDensity: number,
+  p: number,
+  q: number,
+  degree: number
 ): Vertex3D[] {
   const vertices: Vertex3D[] = []
   
-  // Create a regular torus parametrization
-  const majorRadius = 2.0
-  const minorRadius = 0.5
+  // Make torus parameters dependent on p, q, and degree
+  // The lattice L_d = Z(p * 2^(-d)) + Z(q * 2^(-d) * i) should affect the torus shape
+  const latticeScale = Math.pow(2, -degree)  // 2^(-d)
+  const majorRadius = 2.0 + 0.5 * Math.log(p + 1) * latticeScale
+  const minorRadius = 0.5 + 0.2 * Math.log(q + 1) * latticeScale
+  
+  // Add aspect ratio based on p/q ratio
+  const aspectRatio = Math.min(p, q) / Math.max(p, q)
+  const radiusModulation = 1.0 + 0.3 * (1 - aspectRatio)
   
   for (let i = 0; i < meshDensity; i++) {
     for (let j = 0; j < meshDensity; j++) {
       const u = 2 * Math.PI * i / meshDensity
       const v = 2 * Math.PI * j / meshDensity
       
-      const x = (majorRadius + minorRadius * Math.cos(v)) * Math.cos(u)
-      const y = (majorRadius + minorRadius * Math.cos(v)) * Math.sin(u)
-      const z = minorRadius * Math.sin(v)
+      // Add lattice-inspired modulations
+      const pModulation = 0.1 * Math.sin(p * u) * latticeScale
+      const qModulation = 0.1 * Math.cos(q * v) * latticeScale
+      const degreeModulation = 0.05 * Math.sin(degree * (u + v))
+      
+      const effectiveMajor = majorRadius * radiusModulation + pModulation
+      const effectiveMinor = minorRadius + qModulation
+      
+      const x = (effectiveMajor + effectiveMinor * Math.cos(v)) * Math.cos(u)
+      const y = (effectiveMajor + effectiveMinor * Math.cos(v)) * Math.sin(u)
+      const z = effectiveMinor * Math.sin(v) + degreeModulation
       
       vertices.push({ x, y, z })
     }
@@ -145,7 +162,7 @@ export async function generateTorusGeometry(
 }
 
 /**
- * Generate classical torus geometry (original implementation)
+ * Generate classical torus geometry (original implementation with lattice-dependent parameters)
  */
 export function generateClassicalTorusGeometry(
   p: number,
@@ -163,22 +180,34 @@ export function generateClassicalTorusGeometry(
   // Generate lattice points for degree d approximation
   const latticePoints = generateLatticePoints(period1, period2, degree)
   
-  // Project to torus surface and create 3D vertices
-  const vertices = projectToTorus(latticePoints, period1, period2, meshDensity)
+  // Project to torus surface with lattice-dependent parameters
+  const vertices = projectToTorus(latticePoints, period1, period2, meshDensity, p, q, degree)
   
   // Generate facets (quadrilaterals)
   const facets = generateFacets(meshDensity)
   
-  // Calculate elliptic invariants (simplified)
-  const jInvariant = new Complex(1728, 0) // Placeholder
-  const discriminant = period1.multiply(period2)
+  // Calculate elliptic invariants (approximated based on lattice)
+  const latticeScale = Math.pow(2, -degree)
+  const g2Approx = 60 * Math.pow(p * latticeScale, -4) + 60 * Math.pow(q * latticeScale, -4)
+  const g3Approx = 140 * Math.pow(p * latticeScale, -6) + 140 * Math.pow(q * latticeScale, -6)
+  const discriminant = Math.pow(g2Approx, 3) - 27 * Math.pow(g3Approx, 2)
+  const jInvariant = discriminant !== 0 ? new Complex(1728 * Math.pow(g2Approx, 3) / discriminant, 0) : new Complex(1728, 0)
   
   return {
     vertices,
     facets,
     jInvariant,
-    discriminant,
+    discriminant: period1.multiply(period2),
     tau,
-    usePython: false
+    usePython: false,
+    metadata: {
+      p,
+      q,
+      degree,
+      meshDensity,
+      g2: g2Approx.toFixed(6),
+      g3: g3Approx.toFixed(6), 
+      jInvariant: jInvariant.real.toFixed(6)
+    }
   }
 }
