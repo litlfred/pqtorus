@@ -8,5 +8,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist'
-  }
+  },
+  base: './'  // Use relative paths for assets to work in any subdirectory
 })
