@@ -63,10 +63,10 @@ def primary_lattice(p: Union[int, sp.Expr], q: Union[int, sp.Expr]) -> Lattice:
 
 def sublattice_Ld(p: Union[int, sp.Expr], q: Union[int, sp.Expr], d: int) -> Lattice:
     """
-    Create sublattice L_d = ℤp^(-d) + ℤ(q^(-d)i) for degree d ≥ 0.
+    Create sublattice L_d with proper lattice periods for L_d = ℤ(p*2^(-d)) + ℤ(q*2^(-d)*i).
     
-    For d = 0, this gives the primary lattice.
-    For d > 0, this gives a sublattice with scaled periods.
+    The lattice points are L_d(m,n) = m/p^d + i*n/q^d where 0 ≤ m < p^d and 0 ≤ n < q^d.
+    This corresponds to periods ω₁ = p*2^(-d), ω₂ = q*2^(-d)*i.
     
     Args:
         p: First prime period (real)
@@ -74,7 +74,7 @@ def sublattice_Ld(p: Union[int, sp.Expr], q: Union[int, sp.Expr], d: int) -> Lat
         d: Degree (non-negative integer)
         
     Returns:
-        Lattice with periods ω₁ = p^(-d), ω₂ = q^(-d)i
+        Lattice with periods ω₁ = p*2^(-d), ω₂ = q*2^(-d)*i
     """
     if d < 0:
         raise ValueError("Degree d must be non-negative")
@@ -82,10 +82,12 @@ def sublattice_Ld(p: Union[int, sp.Expr], q: Union[int, sp.Expr], d: int) -> Lat
     p_sym = sp.sympify(p)
     q_sym = sp.sympify(q)
     
-    # For d = 0, we get the primary lattice
-    # For d > 0, we scale the periods by p^(-d) and q^(-d)
-    omega1 = p_sym ** (-d) if d > 0 else p_sym
-    omega2 = (q_sym ** (-d)) * I if d > 0 else q_sym * I
+    # Use exact rational arithmetic for the scaling factor
+    scale = sp.Rational(1, 2**d) if d > 0 else sp.Rational(1)
+    
+    # Lattice periods: ω₁ = p*2^(-d), ω₂ = q*2^(-d)*i
+    omega1 = p_sym * scale
+    omega2 = q_sym * scale * I
     
     return Lattice(omega1, omega2)
 
@@ -129,24 +131,48 @@ def sublattice_Ld_alternative_convention(
     return Lattice(omega1, omega2)
 
 
-def lattice_points_in_fundamental_domain(
-    lattice: Lattice, n_max: int = 10
+def generate_lattice_points_Ld(
+    p: Union[int, sp.Expr], 
+    q: Union[int, sp.Expr], 
+    d: int, 
+    max_points_per_direction: int = None
 ) -> list:
     """
-    Generate lattice points in a fundamental domain for visualization.
+    Generate discrete lattice points L_d(m,n) = m/p^d + i*n/q^d with exact rational arithmetic.
+    
+    This implements the proper L_d lattice structure where:
+    - 0 ≤ m < p^d and 0 ≤ n < q^d for d > 0
+    - For d = 0, uses reasonable bounds based on p, q
     
     Args:
-        lattice: The lattice to generate points for
-        n_max: Maximum coefficient range (points with |n₁|, |n₂| ≤ n_max)
+        p: First prime period (integer)
+        q: Second prime period (integer)
+        d: Degree (non-negative integer)
+        max_points_per_direction: Maximum points per direction (for performance)
         
     Returns:
-        List of complex lattice points n₁ω₁ + n₂ω₂
+        List of complex lattice points using exact rational arithmetic
     """
-    points = []
-    for n1 in range(-n_max, n_max + 1):
-        for n2 in range(-n_max, n_max + 1):
-            if n1 == 0 and n2 == 0:
-                continue  # Skip the origin
-            point = n1 * lattice.omega1 + n2 * lattice.omega2
-            points.append(point)
-    return points
+    p_int = int(p)
+    q_int = int(q)
+    
+    if d == 0:
+        # For d=0, use reasonable range for visualization
+        m_max = max_points_per_direction or min(p_int, 20)
+        n_max = max_points_per_direction or min(q_int, 20)
+    else:
+        # For d > 0, use p^d and q^d as theoretical upper bounds
+        m_max = min(p_int**d, max_points_per_direction or 50)
+        n_max = min(q_int**d, max_points_per_direction or 50)
+    
+    lattice_points = []
+    for m in range(int(m_max)):
+        for n in range(int(n_max)):
+            # L_d(m,n) = m/p^d + i*n/q^d using exact rational arithmetic
+            if d == 0:
+                point = sp.Rational(m) + I * sp.Rational(n)
+            else:
+                point = sp.Rational(m, p_int**d) + I * sp.Rational(n, q_int**d)
+            lattice_points.append(point)
+    
+    return lattice_points
