@@ -43,12 +43,20 @@ jobs:
         id: branch
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "name=${{ github.event.inputs.branch }}" >> $GITHUB_OUTPUT
+            BRANCH_NAME="${{ github.event.inputs.branch }}"
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "name=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+            BRANCH_NAME="${{ github.head_ref }}"
           else
-            echo "name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+            BRANCH_NAME="${{ github.ref_name }}"
           fi
+          
+          # Store original branch name for display
+          echo "original_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Sanitize branch name for use in URLs and directory paths
+          # Replace problematic characters with hyphens
+          SAFE_NAME=$(echo "$BRANCH_NAME" | tr '/:?#[]@!$&'"'"'()*+,;=\\' '-' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+          echo "name=$SAFE_NAME" >> $GITHUB_OUTPUT
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -82,7 +90,7 @@ jobs:
           keep_files: true  # Keep other branch directories
           destination_dir: .
           enable_jekyll: false
-          commit_message: 'Deploy ${{ steps.branch.outputs.name }} branch preview'
+          commit_message: 'Deploy ${{ steps.branch.outputs.original_name }} branch preview (as ${{ steps.branch.outputs.name }})'
           
       - name: Set deployment URL
         id: deployment-url
@@ -98,7 +106,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = '${{ steps.branch.outputs.name }}';
+            const originalBranchName = '${{ steps.branch.outputs.original_name }}';
+            const safeBranchName = '${{ steps.branch.outputs.name }}';
             const deployUrl = '${{ steps.deployment-url.outputs.url }}';
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
             
@@ -114,18 +123,23 @@ jobs:
             
             ### 🌟 **Preview Environment**
             
-            <a href="${deployUrl}" target="_blank">
+            <a href="${deployUrl}" target="_blank" rel="noopener noreferrer">
             <img src="https://img.shields.io/badge/🔗_View_Preview-4CAF50?style=for-the-badge&logo=github&logoColor=white&labelColor=2E7D32" alt="View Preview" />
             </a>
             
             <br><br>
             
+            ### 🔗 **Direct Link**
+            **[🌐 Open Preview Site →](${deployUrl})**
+            
+            <br>
+            
             <details>
             <summary><strong>📋 Deployment Details</strong></summary>
             <br>
             
-            **🌐 Preview URL:** \`${deployUrl}\`  
-            **🌿 Branch:** \`${branchName}\`  
+            **🌐 Preview URL:** [${deployUrl}](${deployUrl})  
+            **🌿 Branch:** \`${originalBranchName}\` ${originalBranchName !== safeBranchName ? `(deployed as \`${safeBranchName}\`)` : ''}  
             **⚡ Status:** ✅ Successfully Deployed  
             **🔄 Auto-updates:** This preview updates automatically with new commits
             
@@ -136,7 +150,7 @@ jobs:
             </table>
             
             ---
-            <sub>💡 <strong>Tip:</strong> Click the preview button above to open the deployment in a new tab!</sub>
+            <sub>💡 <strong>Tip:</strong> All links above open in new tabs! Click anywhere on the preview button or direct link.</sub>
 
             </div>`;
             
@@ -176,7 +190,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = '${{ steps.branch.outputs.name }}';
+            const originalBranchName = '${{ steps.branch.outputs.original_name }}';
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${{ github.run_id }}`;
             
             const comment = `<div align="center">
@@ -191,17 +205,22 @@ jobs:
             
             ### 🔧 **Troubleshooting**
             
-            <a href="${runUrl}" target="_blank">
+            <a href="${runUrl}" target="_blank" rel="noopener noreferrer">
             <img src="https://img.shields.io/badge/📋_View_Build_Logs-757575?style=for-the-badge&logo=github&logoColor=white&labelColor=424242" alt="View Build Logs" />
             </a>
             
             <br><br>
             
+            ### 🔗 **Direct Link**
+            **[📋 View Build Logs →](${runUrl})**
+            
+            <br>
+            
             <details>
             <summary><strong>🔍 Failure Details</strong></summary>
             <br>
             
-            **🌿 Branch:** \`${branchName}\`  
+            **🌿 Branch:** \`${originalBranchName}\`  
             **❌ Status:** Failed to Deploy  
             **🛠️ Action:** Check the build logs above for error details  
             **🔄 Next Steps:** Fix the issues and push new commits to retry
@@ -213,7 +232,7 @@ jobs:
             </table>
             
             ---
-            <sub>💡 <strong>Tip:</strong> Click the build logs button above to see what went wrong!</sub>
+            <sub>💡 <strong>Tip:</strong> All links above open in new tabs! Click the build logs button or direct link above.</sub>
 
             </div>`;
             
