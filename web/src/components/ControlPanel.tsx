@@ -5,7 +5,9 @@ import {
   Slider, 
   Paper,
   Stack,
-  Chip
+  Chip,
+  FormControlLabel,
+  Switch
 } from '@mui/material'
 import { TorusParams } from '../App'
 import { isPrime, nextPrime } from '../utils/primes'
@@ -36,6 +38,10 @@ function ControlPanel({ params, setParams }: ControlPanelProps) {
 
   const handleMeshDensityChange = (value: number) => {
     setParams({ ...params, meshDensity: Math.max(5, Math.min(50, value)) })
+  }
+
+  const handleWireframeToggle = (checked: boolean) => {
+    setParams({ ...params, showWireframe: checked })
   }
 
   return (
@@ -156,6 +162,19 @@ function ControlPanel({ params, setParams }: ControlPanelProps) {
                 { value: 40, label: 'High' }
               ]}
               valueLabelDisplay="auto"
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={params.showWireframe}
+                  onChange={(e) => handleWireframeToggle(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Show Wireframe"
             />
           </Box>
         </Box>
