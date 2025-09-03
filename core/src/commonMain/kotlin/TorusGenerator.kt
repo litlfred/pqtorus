@@ -9,10 +9,22 @@ class TorusGenerator {
     
     /**
      * Generate torus geometry for given parameters
+     * 
+     * Creates elliptic curve torus visualization for lattice ℂ/L where:
+     * L = {n₁p + n₂qi | n₁,n₂ ∈ ℤ} with prime periods p,q
+     * 
+     * Mathematical formulas:
+     * - Lattice periods: ω₁ = p + 0i, ω₂ = 0 + qi
+     * - Tau: τ = ω₂/ω₁ = qi/p = i(q/p)  
+     * - Degree-d scaling: L_d = L/2^d
+     * - J-invariant: 1728 (placeholder for j(τ))
+     * - Discriminant: p*qi (simplified form)
+     * 
      * @param p First prime period (real)
      * @param q Second prime period (real)  
      * @param degree Degree of approximation (d >= 0)
      * @param meshDensity Number of subdivisions for the mesh
+     * @return TorusGeometry containing vertices, facets, and invariants
      */
     fun generateTorus(p: Double, q: Double, degree: Int, meshDensity: Int = 20): TorusGeometry {
         // Create lattice periods
@@ -47,7 +59,17 @@ class TorusGenerator {
         )
     }
     
-    private fun generateLatticePoints(period1: Complex, period2: Complex, degree: Int): List<Complex> {
+    /**
+     * Generate lattice points for degree d approximation
+     * 
+     * Formula: L_d = {(n₁ω₁ + n₂ω₂)/2^d | n₁,n₂ ∈ ℤ}
+     * Where ω₁ = p, ω₂ = qi, and scale = 2^(-d)
+     * 
+     * @param period1 First lattice period (p + 0i)
+     * @param period2 Second lattice period (0 + qi)
+     * @param degree Approximation degree d ≥ 0
+     * @return List of complex lattice points
+     */
         val points = mutableListOf<Complex>()
         val scale = 1.0 / (1 shl degree) // 2^(-degree)
         
@@ -62,7 +84,26 @@ class TorusGenerator {
         return points
     }
     
-    private fun projectToTorus(
+    /**
+     * Project lattice points to 3D torus surface
+     * 
+     * Current implementation uses standard geometric torus:
+     * x(u,v) = (R + r*cos(v)) * cos(u)
+     * y(u,v) = (R + r*cos(v)) * sin(u)  
+     * z(u,v) = r * sin(v)
+     * 
+     * Where R = 2.0 (major radius), r = 0.5 (minor radius)
+     * u,v ∈ [0,2π] parametrize the surface
+     * 
+     * Note: Actual lattice points not used in current projection.
+     * Proper elliptic torus would use Weierstrass ℘-function.
+     * 
+     * @param latticePoints Generated lattice points (unused in current implementation)
+     * @param period1 First lattice period
+     * @param period2 Second lattice period  
+     * @param meshDensity Grid resolution for torus mesh
+     * @return List of 3D vertices
+     */
         latticePoints: List<Complex>, 
         period1: Complex, 
         period2: Complex,
@@ -112,7 +153,21 @@ class TorusGenerator {
         val discriminant: Complex
     )
     
-    private fun calculateEllipticInvariants(period1: Complex, period2: Complex): EllipticInvariants {
+    /**
+     * Calculate elliptic curve invariants
+     * 
+     * Mathematical formulas for lattice with periods ω₁ = p, ω₂ = qi:
+     * - Tau: τ = ω₂/ω₁ = qi/p = i(q/p)
+     * - J-invariant: j(τ) = 1728*g₂³/(g₂³-27g₃²) [currently placeholder: 1728]
+     * - Discriminant: Δ = Im(ω̄₁ω₂) = pq [currently simplified as p*qi]
+     * 
+     * Current implementation uses simplified calculations.
+     * See MATHEMATICAL_FORMULAS.md for proper elliptic function theory.
+     * 
+     * @param period1 First lattice period (p + 0i)
+     * @param period2 Second lattice period (0 + qi)
+     * @return EllipticInvariants containing j-invariant and discriminant
+     */
         // Simplified calculation for demonstration
         // In a full implementation, these would be proper elliptic function calculations
         
