@@ -83,7 +83,7 @@ jobs:
           
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./deploy-temp
@@ -91,6 +91,10 @@ jobs:
           destination_dir: .
           enable_jekyll: false
           commit_message: 'Deploy ${{ steps.branch.outputs.original_name }} branch preview (as ${{ steps.branch.outputs.name }})'
+          force_orphan: false  # Don't force orphan commits, preserve history
+          allow_empty_commit: false  # Don't create empty commits
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
           
       - name: Set deployment URL
         id: deployment-url
