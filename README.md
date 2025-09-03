@@ -132,9 +132,89 @@ web/
 │   ├── utils/             # Mathematical utilities
 │   ├── types/             # TypeScript type definitions
 │   └── App.tsx            # Main application
+├── android/               # Android app (Capacitor-generated)
 ├── package.json           # Dependencies and scripts
+├── capacitor.config.ts    # Capacitor configuration
 └── vite.config.ts         # Build configuration
 ```
+
+### Android Development
+
+The project includes an Android app that wraps the web application in a native WebView using Capacitor.
+
+#### Prerequisites for Android development:
+- Node.js 18+
+- Java 17+
+- Android SDK (for local builds)
+
+#### Building the Android app:
+```bash
+cd web
+
+# Quick build using the provided script
+./build-android.sh
+
+# Or manually:
+# Install dependencies
+npm install
+
+# Build for debug APK
+npm run android:build
+
+# Build for release APK
+npm run android:release
+```
+
+#### Manual build process:
+```bash
+cd web
+
+# 1. Build the web application
+npm run build
+
+# 2. Sync web assets to Android project
+npm run android:sync
+
+# 3. Build the Android APK
+cd android
+./gradlew assembleDebug    # Debug APK
+./gradlew assembleRelease  # Release APK (unsigned)
+```
+
+#### APK locations:
+- Debug: `web/android/app/build/outputs/apk/debug/app-debug.apk`
+- Release: `web/android/app/build/outputs/apk/release/app-release-unsigned.apk`
+
+#### Helper Script:
+
+For convenience, a build script is provided at `web/build-android.sh` that automates the entire process:
+
+```bash
+cd web
+./build-android.sh
+```
+
+This script will:
+1. Install npm dependencies
+2. Build the web application
+3. Sync assets with Capacitor
+4. Build the debug APK
+5. Provide instructions for installation and release builds
+
+#### Automated APK Builds
+
+APKs are automatically built for all commits to `main` and feature branches via GitHub Actions:
+
+1. **Trigger**: Push to any branch (except `gh-pages`) or pull request
+2. **Artifacts**: Both debug and release APKs are uploaded as GitHub Actions artifacts
+3. **Download**: APKs can be downloaded from the "Artifacts" section of each workflow run
+4. **Naming**: Artifacts are named `pqtorus-debug-<commit-sha>` and `pqtorus-release-<commit-sha>`
+
+To download APKs:
+1. Go to the [Actions tab](../../actions) in the repository
+2. Click on the workflow run for your commit
+3. Scroll down to the "Artifacts" section
+4. Download the desired APK file
 
 ## Future Architecture Goals
 
@@ -144,8 +224,10 @@ web/
 - Maintain same renderer interface for seamless transition
 - Add comprehensive test suite for mathematical computations
 
-**Phase 3: Cross-Platform**
-- Android renderer using same Kotlin core
+**Phase 3: Enhanced Cross-Platform**
+- ✅ **Android WebView wrapper** (completed with Capacitor)
+- Native Android renderer using Kotlin core (future enhancement)
+- iOS support via Capacitor
 - Native performance optimizations
 - Consistent API across platforms
 
