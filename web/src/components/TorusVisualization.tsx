@@ -86,9 +86,12 @@ function Wireframe({ params }: { params: TorusParams }) {
     return geom
   }, [params.p, params.q, params.degree, params.meshDensity])
 
+  // Wireframe opacity scales with transparency parameter but remains more subtle
+  const wireframeOpacity = params.transparency * 0.4
+
   return (
     <lineSegments geometry={geometry}>
-      <lineBasicMaterial color="#ffffff" opacity={0.3} transparent />
+      <lineBasicMaterial color="#ffffff" opacity={wireframeOpacity} transparent />
     </lineSegments>
   )
 }
@@ -100,8 +103,11 @@ function TorusVisualization({ params }: TorusVisualizationProps) {
       <pointLight position={[10, 10, 10]} intensity={1} />
       <pointLight position={[-10, -10, -10]} intensity={0.5} />
       
+      {/* Solid torus mesh - primary visualization that responds to all parameters */}
       <TorusMesh params={params} />
-      <Wireframe params={params} />
+      
+      {/* Wireframe overlay - shows mesh structure, opacity scales with transparency */}
+      {params.showWireframe && <Wireframe params={params} />}
       
       <Grid
         infiniteGrid
